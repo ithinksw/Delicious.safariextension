@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+body {
+	overflow: hidden;
+}
+
+.reloading {
+	background-image: url(URLBarStopButton.png) !important;
+}
+
+a#reload {
+	float: left;
+	width: 16px;
+	height: 16px;
+	margin-right: 1px;
+	cursor: default;
+	background-image: url(URLBarReloadButton.png);
+}
+
+.hidden {
+	display: none !important;
+}
+
+a.bookmark {
+	display: block;
+	float: left;
+	color: rgba(0, 0, 0, 0.796875);
+	text-decoration: none;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 7px;
+	padding-right: 7px;
+	margin-right: 1px;
+	cursor: default;
+}
+
+a.bookmark:hover {
+	color: white;
+	background-color: rgba(0, 0, 0, 0.2);
+	-webkit-border-radius: 10px;
+	text-shadow: rgba(0, 0, 0, 0.398438) 0px 1px 0px;
+}
+
+
+</style>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script type="text/javascript">
+
+function windowResized() {
+	$('.bookmark').removeClass('to-be-hidden')
+	$('.bookmark').removeClass('hidden');
+	$('.bookmark').each(function() {
+		if ($(this).offset().top > 10) {
+			$(this).addClass('to-be-hidden');
+		}
+	});
+	$('.to-be-hidden').addClass('hidden').removeClass('to-be-hidden');
+}
+
+var username = safari.extension.settings.getItem('com.ithinksw.safariextensions.delicious.username');
+
+function reloadBookmarks(username) {
+	$('#reload').addClass('reloading');
+	$.getJSON("http://feeds.delicious.com/v2/json/" + username + "?callback=?", function (responseObj) {
+		var output = '';
+		for (var i = 0; i < responseObj.length; i++) {
+			var bmark = responseObj[i];
+			var label = bmark['d']
+			if (label.length > 27) {
+				var firstPart = label.substr(0, 12);
+				var secondPart = label.substr(label.length - 12, 12);
+				label = firstPart + "&hellip;" + secondPart;
+			}
+			output += '<a class="bookmark" href="' + bmark['u'] + '">' + label + '</a>';
+		}
+		document.getElementById('bookmarks').innerHTML = output;
+		windowResized();
+		$('#reload').removeClass('reloading');
+	});
+}
+
+function settingsChanged(event) {
+	if (event.key == 'com.ithinksw.safariextensions.delicious.username') {
+		username = event.newValue;
+		reloadBookmarks(username);
+	}
+}
+
+$(function() {
+	reloadBookmarks(username);
+	$(window).resize(windowResized);
+	safari.extension.settings.addEventListener('change', settingsChanged, false);
+});
+
+</script>
+<title>Toolbar</title>
+</head>
+<body><a id="reload" href="javascript:reloadBookmarks(username);"></a><div id="bookmarks"></div></body>
+</html>

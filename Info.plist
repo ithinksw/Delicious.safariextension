@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Author</key>
+	<string>iThink Software</string>
+	<key>CFBundleDisplayName</key>
+	<string>Delicious</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.ithinksw.safariextensions.delicious</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleShortVersionString</key>
+	<string>α 1</string>
+	<key>CFBundleVersion</key>
+	<string>0.0.1</string>
+	<key>Chrome</key>
+	<dict>
+		<key>Bars</key>
+		<array>
+			<dict>
+				<key>Filename</key>
+				<string>toolbar.html</string>
+				<key>Identifier</key>
+				<string>com.ithinksw.safariextensions.delicious.bar</string>
+				<key>Label</key>
+				<string>Delicious</string>
+			</dict>
+		</array>
+	</dict>
+	<key>Content</key>
+	<dict>
+		<key>Scripts</key>
+		<dict/>
+	</dict>
+	<key>Description</key>
+	<string>Integrates Safari with the Delicious social bookmarking service.</string>
+	<key>ExtensionInfoDictionaryVersion</key>
+	<string>1.0</string>
+	<key>Permissions</key>
+	<dict>
+		<key>Website Access</key>
+		<dict/>
+	</dict>
+	<key>Update Manifest URL</key>
+	<string>http://download.ithinksw.com/safariextensions/.update.plist</string>
+	<key>Website</key>
+	<string>http://ithinksw.com/</string>
+</dict>
+</plist>
