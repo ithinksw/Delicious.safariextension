@@ -3,12 +3,12 @@
 <plist version="1.0">
 <array>
 	<dict>
-		<key>DefaultValue</key>
-		<string></string>
 		<key>Key</key>
-		<string>com.ithinksw.safariextensions.delicious.username</string>
+		<string>com.ithinksw.safariextensions.delicious.privateRSSFeedURL</string>
+		<key>Secure</key>
+		<true/>
 		<key>Title</key>
-		<string>Delicious username</string>
+		<string>Private RSS feed URL</string>
 		<key>Type</key>
 		<string>TextField</string>
 	</dict>

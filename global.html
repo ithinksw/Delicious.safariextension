@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Delicious.safariextension</title>
+		<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+		<script type="text/javascript">
+			var Delicious = window.Delicious = {
+				username: null,
+				privateKey: null,
+				bookmarks: [],
+				currentTag: null,
+				tags: [],
+				addBookmark: function(url, title) {
+					var deliciousURL = 'http://delicious.com/save?url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(title) + '&v=5&noui=1&jump=doclose';
+					if (!window.open(deliciousURL, 'deliciousuiv5', 'location=yes,links=no,scrollbars=no,toolbar=no,width=550,height=550')) {
+						var tab = safari.application.activeBrowserWindow.openTab();
+						tab.url = deliciousURL;
+					}
+				},
+				refreshBars: function() {
+					var bars = safari.extension.bars;
+					for (var i = 0; i < bars.length; i++) {
+						var bar = bars[i].contentWindow;
+						bar.refresh(this);
+					}
+				},
+				reloadBookmarksWithTag: function(tag) {
+					if (this.username && this.privateKey) {
+						var self = this;
+						var currentTag = tag;
+						$.getJSON('http://feeds.delicious.com/v2/json/' + this.username + '/' + tag + '?key=' + this.privateKey + '&callback=?', function(response) {
+							self.bookmarks = [];
+							for (var i = 0; i < response.length; i++) {
+								var bookmark = response[i];
+								var bookmarkURL = bookmark['u'];
+								var bookmarkName = bookmark['d'];
+								self.bookmarks.push({url: bookmarkURL, name: bookmarkName});
+							}
+							self.currentTag = currentTag;
+							self.refreshBars();
+						});
+					} else {
+						this.currentTag = null;
+					}
+				},
+				reloadBookmarks: function() {
+					this.currentTag = null;
+					if (this.username && this.privateKey) {
+						var self = this;
+						$.getJSON('http://feeds.delicious.com/v2/json/' + this.username + '?private=' + this.privateKey + '&callback=?', function(response) {
+							self.bookmarks = [];
+							for (var i = 0; i < response.length; i++) {
+								var bookmark = response[i];
+								var bookmarkURL = bookmark['u'];
+								var bookmarkName = bookmark['d'];
+								self.bookmarks.push({url: bookmarkURL, name: bookmarkName});
+							}
+							self.refreshBars();
+						});
+					} else {
+						this.bookmarks = [];
+					}
+				},
+				reloadTags: function() {
+					if (this.username && this.privateKey) {
+						var self = this;
+						$.getJSON('http://feeds.delicious.com/v2/json/tags/' + this.username + '?key=' + this.privateKey + '&callback=?', function(response) {
+							self.tags = [];
+							for (var tag in response) {
+								var count = response[tag];
+								self.tags.push({tag: tag, count: count});
+							}
+							self.refreshBars();
+						});
+					} else {
+						this.tags = [];
+					}
+				},
+				setupUser: function(privateRSSFeedURL) {
+					if (privateRSSFeedURL) {
+						var matches = /http:\/\/feeds\.delicious\.com\/v2\/rss\/(.+)\?private=(.+)&count=15/.exec(privateRSSFeedURL);
+						if (matches && matches.length == 3) {
+							this.username = matches[1];
+							this.privateKey = matches[2];
+						} else {
+							this.username = null;
+							this.privateKey = null;
+						}
+					} else {
+						this.username = null;
+						this.privateKey = null;
+					}
+					this.reloadBookmarks();
+					this.reloadTags();
+				},
+				setup: function() {
+					var privateRSSFeedURL = safari.extension.secureSettings.getItem('com.ithinksw.safariextensions.delicious.privateRSSFeedURL')
+					this.setupUser(privateRSSFeedURL);
+					
+					var self = this;
+					safari.extension.secureSettings.addEventListener('change', function(event) {
+						if (event.key === 'com.ithinksw.safariextensions.delicious.privateRSSFeedURL') {
+							self.setupUser(event.newValue);
+						}
+					}, false);
+					safari.application.addEventListener("command", function(event) {
+						if (event.command === "addbookmark") {
+							self.addBookmark(event.target.browserWindow.activeTab.url, event.target.browserWindow.activeTab.title);
+						}
+					}, false);
+					safari.application.addEventListener("validate", function(event) {
+						if (event.command === "addbookmark") {
+							if (event.target.browserWindow.activeTab.url) {
+								if (self.username) {
+									event.target.disabled = false;
+								} else {
+									event.target.disabled = true;
+								}
+							} else {
+								event.target.disabled = true;
+							}
+						}
+					}, false);
+					
+					this.refreshBars();
+				},
+			};
+			$(function() {
+				Delicious.setup();
+			});
+		</script>
+	</head>
+	<body>
+	</body>
+</html>

@@ -11,9 +11,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleShortVersionString</key>
-	<string>α 1</string>
+	<string>β 1</string>
 	<key>CFBundleVersion</key>
-	<string>0.0.1</string>
+	<string>0.1.0</string>
 	<key>Chrome</key>
 	<dict>
 		<key>Bars</key>
@@ -27,6 +27,25 @@
 				<string>Delicious</string>
 			</dict>
 		</array>
+		<key>Global Page</key>
+		<string>global.html</string>
+		<key>Toolbar Items</key>
+		<array>
+			<dict>
+				<key>Command</key>
+				<string>addbookmark</string>
+				<key>Identifier</key>
+				<string>com.ithinksw.safariextensions.delicious.addbookmark</string>
+				<key>Image</key>
+				<string>bookmark-small.png</string>
+				<key>Label</key>
+				<string>Add Bookmark on Delicious</string>
+				<key>Palette Label</key>
+				<string>Add Bookmark on Delicious</string>
+				<key>Tool Tip</key>
+				<string>Add a bookmark for the current page on Delicious</string>
+			</dict>
+		</array>
 	</dict>
 	<key>Content</key>
 	<dict>
@@ -34,13 +53,18 @@
 		<dict/>
 	</dict>
 	<key>Description</key>
-	<string>Integrates Safari with the Delicious social bookmarking service.</string>
+	<string>Integration with the Delicious social bookmarking service. Icons by Y. Kamiyamane &amp; O. Twardowski.</string>
 	<key>ExtensionInfoDictionaryVersion</key>
 	<string>1.0</string>
 	<key>Permissions</key>
 	<dict>
 		<key>Website Access</key>
-		<dict/>
+		<dict>
+			<key>Include Secure Pages</key>
+			<true/>
+			<key>Level</key>
+			<string>All</string>
+		</dict>
 	</dict>
 	<key>Update Manifest URL</key>
 	<string>http://download.ithinksw.com/safariextensions/.update.plist</string>

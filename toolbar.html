@@ -2,101 +2,163 @@
 <html>
 <head>
 <style>
-
-body {
-	overflow: hidden;
-}
-
-.reloading {
-	background-image: url(URLBarStopButton.png) !important;
-}
-
-a#reload {
-	float: left;
-	width: 16px;
-	height: 16px;
-	margin-right: 1px;
-	cursor: default;
-	background-image: url(URLBarReloadButton.png);
-}
-
-.hidden {
-	display: none !important;
-}
-
-a.bookmark {
-	display: block;
-	float: left;
-	color: rgba(0, 0, 0, 0.796875);
-	text-decoration: none;
-	padding-top: 2px;
-	padding-bottom: 2px;
-	padding-left: 7px;
-	padding-right: 7px;
-	margin-right: 1px;
-	cursor: default;
-}
-
-a.bookmark:hover {
-	color: white;
-	background-color: rgba(0, 0, 0, 0.2);
-	-webkit-border-radius: 10px;
-	text-shadow: rgba(0, 0, 0, 0.398438) 0px 1px 0px;
-}
-
-
+	body {
+		overflow: hidden;
+	}
+	#selector {
+		float: left;
+		margin-left: 5px;
+		margin-right: 6px;
+	}
+	#selector #menu {
+		-webkit-appearance: none;
+		background: inherit;
+		border: inherit;
+		border-radius: inherit;
+		width: 16px;
+		height: 16px;
+		padding-left: 16px;
+		background: url(sort.png) no-repeat;
+		outline: none;
+	}
+	#selector #tag-selected {
+		vertical-align: bottom;
+		margin-right: -6px;
+	}
+	#selector #selected {
+		line-height: 16px;
+		vertical-align: bottom;
+		font-size: xx-small;
+	}
+	.hidden {
+		display: none !important;
+	}
+	a.bookmark {
+		display: block;
+		float: left;
+		color: rgba(0, 0, 0, 0.796875);
+		margin-top: -1px;
+		text-decoration: none;
+		padding-top: 2px;
+		padding-bottom: 2px;
+		padding-left: 7px;
+		padding-right: 7px;
+		cursor: default;
+	}
+	a.bookmark:hover {
+		color: white;
+		background-color: rgba(0, 0, 0, 0.2);
+		-webkit-border-radius: 10px;
+		text-shadow: rgba(0, 0, 0, 0.398438) 0px 1px 0px;
+	}
 </style>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
 <script type="text/javascript">
-
-function windowResized() {
-	$('.bookmark').removeClass('to-be-hidden')
-	$('.bookmark').removeClass('hidden');
-	$('.bookmark').each(function() {
-		if ($(this).offset().top > 10) {
-			$(this).addClass('to-be-hidden');
-		}
-	});
-	$('.to-be-hidden').addClass('hidden').removeClass('to-be-hidden');
-}
-
-var username = safari.extension.settings.getItem('com.ithinksw.safariextensions.delicious.username');
-
-function reloadBookmarks(username) {
-	$('#reload').addClass('reloading');
-	$.getJSON("http://feeds.delicious.com/v2/json/" + username + "?callback=?", function (responseObj) {
+	function redrawWindow() {
+		$('.bookmark').removeClass('to-be-hidden')
+		$('.bookmark').removeClass('hidden');
+		$('.bookmark').each(function() {
+			if ($(this).offset().top > 10) {
+				$(this).addClass('to-be-hidden');
+			}
+		});
+		$('.to-be-hidden').addClass('hidden').removeClass('to-be-hidden');
+	};
+	function reloadBookmarks(username, bookmarks) {
 		var output = '';
-		for (var i = 0; i < responseObj.length; i++) {
-			var bmark = responseObj[i];
-			var label = bmark['d']
+		for (var i = 0; i < bookmarks.length; i++) {
+			var bookmark = bookmarks[i];
+			var label = bookmark.name;
 			if (label.length > 27) {
 				var firstPart = label.substr(0, 12);
 				var secondPart = label.substr(label.length - 12, 12);
 				label = firstPart + "&hellip;" + secondPart;
 			}
-			output += '<a class="bookmark" href="' + bmark['u'] + '">' + label + '</a>';
+			output += '<a class="bookmark" title="' + bookmark.url + '" href="' + bookmark.url + '">' + label + '</a>';
 		}
-		document.getElementById('bookmarks').innerHTML = output;
-		windowResized();
-		$('#reload').removeClass('reloading');
+		$('#bookmarks').html(output);
+		redrawWindow();
+	};
+	function reloadMenu(username, tags, currentTag) {
+		var menu = $('#menu');
+		menu.empty();
+		if (username) {
+			menu.append('<option value="home">My Delicious</option>');
+			menu.append('<hr />');
+			menu.append('<option id="all" value="all">All Bookmarks</option>');
+			menu.append('<optgroup id="tags" label="All Bookmarks with Tag"></optgroup>');
+			var tagContainer = menu.find('#tags');
+			tagContainer.empty();
+			for (var i = 0; i < tags.length; i++) {
+				var tag = tags[i];
+				var toAppend = '<option ';
+				if (currentTag && tag.tag == currentTag) {
+					toAppend += 'selected="selected" ';
+				}
+				toAppend += 'value="tag:' + tag.tag + '">' + tag.tag + ' (' + tag.count + ')</option>';
+				tagContainer.append(toAppend);
+			}
+			menu.append('<hr />');
+			if (currentTag) {
+				$('#selected').html(currentTag);
+				$('#tag-selected').removeClass('hidden');
+				$('#selected').removeClass('hidden');
+			} else {
+				$('#menu')[0].selectedIndex = 1;
+				$('#tag-selected').addClass('hidden');
+				$('#selected').addClass('hidden');
+			}
+			$('#selector').removeClass('hidden');
+			$('#menu').removeAttr('disabled');
+		} else {
+			$('#selector').addClass('hidden');
+			$('#menu').attr('disabled', 'disabled');
+		}
+		menu.append('<option value="refresh">Refresh</option>');
+	};
+	function refresh(delicious) {
+		var username = delicious.username;
+		var bookmarks = delicious.bookmarks;
+		var currentTag = delicious.currentTag || '';
+		var tags = delicious.tags;
+		reloadMenu(username, tags, currentTag);
+		reloadBookmarks(username, bookmarks);
+	};
+	$(function() {
+		$(window).resize(redrawWindow);
+		$('#menu').change(function(event) {
+			if (!event.target.previousIndex) {
+				event.target.previousIndex = event.target.selectedIndex;
+			}
+			var option = event.target.options[event.target.selectedIndex];
+			if (option.value.substr(0, 4) == 'tag:') {
+				var tag = option.value.substr(4);
+				safari.extension.globalPage.contentWindow.Delicious.reloadBookmarksWithTag(tag);
+			} else if (option.value == 'all') {
+				safari.extension.globalPage.contentWindow.Delicious.reloadBookmarks();
+			} else if (option.value == 'refresh') {
+				refresh(safari.extension.globalPage.contentWindow.Delicious);
+				event.target.selectedIndex = event.target.previousIndex;
+			} else if (option.value == 'home') {
+				var tab = safari.application.activeBrowserWindow.openTab();
+				tab.url = 'http://delicious.com/home';
+				event.target.selectedIndex = event.target.previousIndex;
+			}
+			event.target.previousIndex = event.target.selectedIndex;
+		});
+		refresh(safari.extension.globalPage.contentWindow.Delicious);
 	});
-}
-
-function settingsChanged(event) {
-	if (event.key == 'com.ithinksw.safariextensions.delicious.username') {
-		username = event.newValue;
-		reloadBookmarks(username);
-	}
-}
-
-$(function() {
-	reloadBookmarks(username);
-	$(window).resize(windowResized);
-	safari.extension.settings.addEventListener('change', settingsChanged, false);
-});
-
 </script>
 <title>Toolbar</title>
 </head>
-<body><a id="reload" href="javascript:reloadBookmarks(username);"></a><div id="bookmarks"></div></body>
+	<body>
+		<div id="selector" class="hidden">
+			<select name="menu" id="menu" disabled="disabled">
+			</select>
+			<img id="tag-selected" src="tag-small.png" class="hidden" />
+			<span id="selected" class="hidden"></span>
+		</div>
+		<div id="bookmarks">
+		</div>
+	</body>
 </html>
